@@ -72,4 +72,17 @@ class IntersectionTest {
         assertEquals(0, intersection.getLoad().get(Direction.NORTH));
         assertEquals(1, intersection.getLoad().get(Direction.EAST));
     }
+
+    @Test
+    @DisplayName("vehicles spread across lanes on arrival")
+    void vehiclesSpreadAcrossLanes() {
+        Intersection intersection = new Intersection(2);
+        intersection.addVehicle(new Vehicle("v1", Direction.NORTH, Direction.SOUTH));
+        intersection.addVehicle(new Vehicle("v2", Direction.NORTH, Direction.SOUTH));
+
+        assertEquals(2, intersection.getLoad().get(Direction.NORTH));
+
+        List<String> departed = intersection.removeVehicles(TrafficDirection.N_S);
+        assertTrue(departed.containsAll(List.of("v1", "v2")));
+    }
 }

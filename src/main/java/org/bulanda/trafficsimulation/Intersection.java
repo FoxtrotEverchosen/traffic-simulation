@@ -3,24 +3,38 @@ package org.bulanda.trafficsimulation;
 import java.util.*;
 
 public class Intersection {
-    HashMap<Direction, Queue<Vehicle>> lanes;
+    HashMap<Direction, List<Queue<Vehicle>>> lanes;
 
+    // default to 1 on no lanes count specified
     public Intersection() {
+        this(1);
+    }
+
+    public Intersection(int laneCount) {
         this.lanes = new HashMap<>();
         for (Direction d : Direction.values()) {
-            lanes.put(d, new ArrayDeque<>());
+            List<Queue<Vehicle>> roadLanes = new ArrayList<>();
+            for (int i = 0; i < laneCount; i++) {
+                roadLanes.add(new ArrayDeque<>());
+            }
+            lanes.put(d, roadLanes);
         }
     }
 
     void addVehicle(Vehicle vehicle) {
-        lanes.get(vehicle.startRoad()).add(vehicle);
+        List<Queue<Vehicle>> roadLanes = lanes.get(vehicle.startRoad());
+        roadLanes.stream()
+                .min(Comparator.comparingInt(Queue::size))
+                .ifPresent(lane -> lane.add(vehicle));
     }
 
-    List<String> removeVehicles(TrafficDirection direction) {
+    List<String> removeVehicles(TrafficDirection trafficDirection) {
         List<String> departed = new ArrayList<>();
-        for (Direction d : direction.directions) {
-            Vehicle v = lanes.get(d).poll();
-            if (v != null) departed.add(v.vehicleId());
+        for (Direction d : trafficDirection.directions) {
+            for (Queue<Vehicle> lane : lanes.get(d)) {
+                Vehicle v = lane.poll();
+                if (v != null) departed.add(v.vehicleId());
+            }
         }
         return departed;
     }
@@ -28,7 +42,9 @@ public class Intersection {
     HashMap<Direction, Integer> getLoad() {
         HashMap<Direction, Integer> map = new HashMap<>();
         for (Direction d : Direction.values()) {
-            map.put(d, lanes.get(d).size());
+            map.put(d, lanes.get(d).stream()
+                    .mapToInt(Queue::size)
+                    .sum());
         }
         return map;
     }
