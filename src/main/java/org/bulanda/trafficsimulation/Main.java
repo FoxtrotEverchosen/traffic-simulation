@@ -9,11 +9,12 @@ import java.util.List;
 import java.util.Map;
 
 public class Main {
-    static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(new File(args[0]));
-        SimulationLoop loop = new SimulationLoop();
 
+        int nRoads = args.length > 2 ? Integer.parseInt(args[2]) : 1;
+        SimulationLoop loop = new SimulationLoop(nRoads);
         List<Map<String, List<String>>> stepStatuses = loop.runSim(root.get("commands"));
 
         Map<String, Object> output = Map.of("stepStatuses", stepStatuses);

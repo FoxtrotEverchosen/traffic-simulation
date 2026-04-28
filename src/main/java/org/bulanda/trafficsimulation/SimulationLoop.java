@@ -7,8 +7,14 @@ import java.util.List;
 import java.util.Map;
 
 public class SimulationLoop {
+    int nRoads;
+
+    public SimulationLoop(int nRoads) {
+        this.nRoads = nRoads;
+    }
+
     List<Map<String, List<String>>> runSim(JsonNode commands) {
-        Intersection intersection = new Intersection();
+        Intersection intersection = new Intersection(nRoads);
         Controller controller = new Controller();
         List<Map<String, List<String>>> stepStatuses = new ArrayList<>();
         TrafficDirection currentDirection = TrafficDirection.N_S;

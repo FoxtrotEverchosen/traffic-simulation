@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SimulationLoopTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final SimulationLoop loop = new SimulationLoop();
+    private final SimulationLoop loop = new SimulationLoop(1);
 
     @Test
     @DisplayName("test works with provided sample")
@@ -52,7 +52,7 @@ class SimulationLoopTest {
     }
 
     @Test
-    @DisplayName("multiple vehicles on same road depart one per step")
+    @DisplayName("multiple vehicles on same line depart one per step")
     void oneVehiclePerStepPerRoad() throws Exception {
         String input = """
                 {
