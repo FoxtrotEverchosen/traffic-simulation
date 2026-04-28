@@ -10,8 +10,8 @@ public class SimulationLoop {
     List<Map<String, List<String>>> runSim(JsonNode commands) {
         Intersection intersection = new Intersection();
         Controller controller = new Controller();
-        TrafficDirection currentDirection = TrafficDirection.N_S;
         List<Map<String, List<String>>> stepStatuses = new ArrayList<>();
+        TrafficDirection currentDirection = TrafficDirection.N_S;
         int phaseTime = 1;
 
         for (JsonNode command : commands) {

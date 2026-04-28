@@ -7,11 +7,11 @@ public class Controller {
     static final int MAX_PHASE_TIME = 10;
 
     TrafficDirection setDirection(TrafficDirection current, HashMap<Direction, Integer> trafficLoad, int phaseTime) {
-        if (phaseTime < MIN_PHASE_TIME) return current;
-        if (phaseTime > MAX_PHASE_TIME) return current.other();
-
         int currentLoad = loadFor(current, trafficLoad);
         int otherLoad = loadFor(current.other(), trafficLoad);
+
+        if (phaseTime < MIN_PHASE_TIME) return current;
+        if (phaseTime > MAX_PHASE_TIME && otherLoad != 0) return current.other();
 
         return otherLoad > currentLoad * 1.5 ? current.other() : current;
     }
