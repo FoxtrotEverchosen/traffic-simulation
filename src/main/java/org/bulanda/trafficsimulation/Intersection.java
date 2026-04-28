@@ -4,6 +4,7 @@ import java.util.*;
 
 public class Intersection {
     HashMap<Direction, List<Queue<Vehicle>>> lanes;
+    Set<Direction> closedRoads;
 
     // default to 1 on no lanes count specified
     public Intersection() {
@@ -12,6 +13,7 @@ public class Intersection {
 
     public Intersection(int laneCount) {
         this.lanes = new HashMap<>();
+        this.closedRoads = new HashSet<>();
         for (Direction d : Direction.values()) {
             List<Queue<Vehicle>> roadLanes = new ArrayList<>();
             for (int i = 0; i < laneCount; i++) {
@@ -28,9 +30,21 @@ public class Intersection {
                 .ifPresent(lane -> lane.add(vehicle));
     }
 
+    void failRoad(Direction direction) {
+        closedRoads.add(direction);
+    }
+
+    void fixRoad(Direction direction) {
+        closedRoads.remove(direction);
+    }
+
     List<String> removeVehicles(TrafficDirection trafficDirection) {
         List<String> departed = new ArrayList<>();
         for (Direction d : trafficDirection.directions) {
+            if (closedRoads.contains(d)) {
+                continue;
+            }
+
             for (Queue<Vehicle> lane : lanes.get(d)) {
                 Vehicle v = lane.poll();
                 if (v != null) departed.add(v.vehicleId());
@@ -42,9 +56,13 @@ public class Intersection {
     HashMap<Direction, Integer> getLoad() {
         HashMap<Direction, Integer> map = new HashMap<>();
         for (Direction d : Direction.values()) {
-            map.put(d, lanes.get(d).stream()
-                    .mapToInt(Queue::size)
-                    .sum());
+            if (closedRoads.contains(d)) {
+                map.put(d, 0);
+            } else {
+                map.put(d, lanes.get(d).stream()
+                        .mapToInt(Queue::size)
+                        .sum());
+            }
         }
         return map;
     }

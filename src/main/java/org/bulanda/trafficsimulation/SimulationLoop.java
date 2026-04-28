@@ -18,11 +18,21 @@ public class SimulationLoop {
             switch (command.get("type").asText()) {
                 case "addVehicle" -> {
                     Vehicle v = new Vehicle(command.get("vehicleId").asText(),
-                            Direction.valueOf(command.get("startRoad").asText().toUpperCase()),
-                            Direction.valueOf(command.get("endRoad").asText().toUpperCase())
+                            Direction.fromString(command.get("startRoad").asText()),
+                            Direction.fromString(command.get("endRoad").asText())
                     );
 
                     intersection.addVehicle(v);
+
+                }
+                case "failRoad" -> {
+                    Direction direction = Direction.fromString(command.get("direction").asText());
+                    intersection.failRoad(direction);
+
+                }
+                case "fixRoad" -> {
+                    Direction direction = Direction.fromString(command.get("direction").asText());
+                    intersection.fixRoad(direction);
 
                 }
                 case "step" -> {

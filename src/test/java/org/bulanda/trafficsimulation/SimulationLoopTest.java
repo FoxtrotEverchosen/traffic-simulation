@@ -74,4 +74,56 @@ class SimulationLoopTest {
         assertEquals(List.of("v2"), result.get(1).get("leftVehicles"));
         assertEquals(List.of("v3"), result.get(2).get("leftVehicles"));
     }
+
+    @Test
+    @DisplayName("failed road vehicles do not depart")
+    void failedRoadDoesNotDepart() throws Exception {
+        String input = """
+                {
+                  "commands": [
+                    { "type": "addVehicle", "vehicleId": "v1", "startRoad": "north", "endRoad": "south" },
+                    { "type": "failRoad", "direction": "north" },
+                    { "type": "step" }
+                  ]
+                }
+                """;
+
+        JsonNode commands = mapper.readTree(input).get("commands");
+        List<Map<String, List<String>>> result = loop.runSim(commands);
+
+        assertTrue(result.get(0).get("leftVehicles").isEmpty());
+    }
+
+    @Test
+    @DisplayName("fixed road resumes departures after repair")
+    void fixedRoadResumesAfterRepair() throws Exception {
+        String input = """
+                {
+                  "commands": [
+                    { "type": "addVehicle", "vehicleId": "v1", "startRoad": "north", "endRoad": "south" },
+                    { "type": "failRoad", "direction": "north" },
+                    { "type": "step" },
+                    { "type": "fixRoad", "direction": "north" },
+                    { "type": "step" }
+                  ]
+                }
+                """;
+
+        JsonNode commands = mapper.readTree(input).get("commands");
+        List<Map<String, List<String>>> result = loop.runSim(commands);
+
+        assertTrue(result.get(0).get("leftVehicles").isEmpty());
+        assertTrue(result.get(1).get("leftVehicles").contains("v1"));
+    }
+
+    @Test
+    @DisplayName("failed road is excluded from load calculation")
+    void failedRoadExcludedFromLoad() {
+        Intersection intersection = new Intersection();
+        intersection.addVehicle(new Vehicle("v1", Direction.NORTH, Direction.SOUTH));
+        intersection.addVehicle(new Vehicle("v2", Direction.NORTH, Direction.SOUTH));
+        intersection.failRoad(Direction.NORTH);
+
+        assertEquals(0, intersection.getLoad().get(Direction.NORTH));
+    }
 }
