@@ -76,6 +76,28 @@ class SimulationLoopTest {
     }
 
     @Test
+    @DisplayName("two lane intersection doubles throughput per step")
+    void twoLanesDoublesOutput() throws Exception {
+        SimulationLoop twoLaneLoop = new SimulationLoop(2);
+        String input = """
+                {
+                  "commands": [
+                    { "type": "addVehicle", "vehicleId": "v1", "startRoad": "north", "endRoad": "south" },
+                    { "type": "addVehicle", "vehicleId": "v2", "startRoad": "north", "endRoad": "south" },
+                    { "type": "addVehicle", "vehicleId": "v3", "startRoad": "south", "endRoad": "north" },
+                    { "type": "addVehicle", "vehicleId": "v4", "startRoad": "south", "endRoad": "north" },
+                    { "type": "step" }
+                  ]
+                }
+                """;
+
+        JsonNode commands = mapper.readTree(input).get("commands");
+        List<Map<String, List<String>>> result = twoLaneLoop.runSim(commands);
+
+        assertTrue(result.get(0).get("leftVehicles").containsAll(List.of("v1", "v2", "v3", "v4")));
+    }
+
+    @Test
     @DisplayName("failed road vehicles do not depart")
     void failedRoadDoesNotDepart() throws Exception {
         String input = """
