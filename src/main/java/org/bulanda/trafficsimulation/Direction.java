@@ -1,6 +1,6 @@
 package org.bulanda.trafficsimulation;
 
-enum Direction {
+public enum Direction {
     NORTH,
     EAST,
     SOUTH,

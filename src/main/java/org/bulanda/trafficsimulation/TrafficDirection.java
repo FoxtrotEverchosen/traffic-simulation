@@ -2,7 +2,7 @@ package org.bulanda.trafficsimulation;
 
 import java.util.Set;
 
-enum TrafficDirection {
+public enum TrafficDirection {
     N_S(Set.of(Direction.NORTH, Direction.SOUTH)),
     E_W(Set.of(Direction.EAST, Direction.WEST));
 

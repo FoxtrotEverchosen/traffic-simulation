@@ -30,7 +30,7 @@ class ControllerTest {
         load.put(Direction.WEST, 4);
 
         TrafficDirection result = controller.setDirection(
-                TrafficDirection.N_S, load, Controller.MIN_PHASE_TIME + 1, intersection.getEmergencyDirections()
+                TrafficDirection.N_S, load, ThresholdStrategy.MIN_PHASE_TIME + 1, intersection.getEmergencyDirections()
         );
 
         assertEquals(TrafficDirection.E_W, result);
@@ -46,7 +46,7 @@ class ControllerTest {
         load.put(Direction.WEST, 0);
 
         TrafficDirection result = controller.setDirection(
-                TrafficDirection.N_S, load, Controller.MAX_PHASE_TIME + 1, intersection.getEmergencyDirections()
+                TrafficDirection.N_S, load, ThresholdStrategy.MAX_PHASE_TIME + 1, intersection.getEmergencyDirections()
         );
 
         assertEquals(TrafficDirection.E_W, result);
@@ -62,7 +62,7 @@ class ControllerTest {
         load.put(Direction.WEST, 0);
 
         TrafficDirection result = controller.setDirection(
-                TrafficDirection.N_S, load, Controller.MAX_PHASE_TIME + 1, intersection.getEmergencyDirections()
+                TrafficDirection.N_S, load, ThresholdStrategy.MAX_PHASE_TIME + 1, intersection.getEmergencyDirections()
         );
 
         assertEquals(TrafficDirection.N_S, result);
