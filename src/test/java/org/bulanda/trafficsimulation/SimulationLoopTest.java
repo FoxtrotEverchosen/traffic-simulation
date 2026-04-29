@@ -148,4 +148,98 @@ class SimulationLoopTest {
 
         assertEquals(0, intersection.getLoad().get(Direction.NORTH));
     }
+
+    @Test
+    @DisplayName("emergency vehicle forces immediate phase switch")
+    void emergencyVehicleForcesPhaseSwitch() throws Exception {
+        String input = """
+                {
+                  "commands": [
+                    { "type": "addVehicle", "vehicleId": "regular", "startRoad": "north", "endRoad": "south" },
+                    { "type": "addEmergencyVehicle", "vehicleId": "emergency", "startRoad": "west", "endRoad": "east" },
+                    { "type": "step" }
+                  ]
+                }
+                """;
+
+        JsonNode commands = mapper.readTree(input).get("commands");
+        List<Map<String, List<String>>> result = loop.runSim(commands);
+
+        // E_W should be forced even though simulation starts with N_S
+        assertTrue(result.get(0).get("leftVehicles").contains("emergency"));
+        assertFalse(result.get(0).get("leftVehicles").contains("regular"));
+    }
+
+    @Test
+    @DisplayName("emergency vehicle departs before regular vehicles in same lane")
+    void emergencyVehicleJumpsQueue() throws Exception {
+        String input = """
+                {
+                  "commands": [
+                    { "type": "addVehicle", "vehicleId": "regular", "startRoad": "north", "endRoad": "south" },
+                    { "type": "addEmergencyVehicle", "vehicleId": "emergency", "startRoad": "north", "endRoad": "south" },
+                    { "type": "step" }
+                  ]
+                }
+                """;
+
+        JsonNode commands = mapper.readTree(input).get("commands");
+        List<Map<String, List<String>>> result = loop.runSim(commands);
+
+        // emergency departs first step, regular waits
+        assertTrue(result.get(0).get("leftVehicles").contains("emergency"));
+        assertFalse(result.get(0).get("leftVehicles").contains("regular"));
+    }
+
+    @Test
+    @DisplayName("normal algorithm resumes after emergency vehicle departs")
+    void normalAlgorithmResumesAfterEmergency() throws Exception {
+        String input = """
+                {
+                  "commands": [
+                    { "type": "addEmergencyVehicle", "vehicleId": "emergency", "startRoad": "west", "endRoad": "east" },
+                    { "type": "addVehicle", "vehicleId": "regular", "startRoad": "north", "endRoad": "south" },
+                    { "type": "step" },
+                    { "type": "step" }
+                  ]
+                }
+                """;
+
+        JsonNode commands = mapper.readTree(input).get("commands");
+        List<Map<String, List<String>>> result = loop.runSim(commands);
+
+        // first step emergency goes
+        assertTrue(result.get(0).get("leftVehicles").contains("emergency"));
+        // second step normal N_S resumes
+        assertTrue(result.get(1).get("leftVehicles").contains("regular"));
+    }
+
+    @Test
+    @DisplayName("second emergency vehicle retains priority after first departs")
+    void multipleEmergencyVehiclesSameLane() throws Exception {
+        String input = """
+                {
+                  "commands": [
+                    { "type": "addEmergencyVehicle", "vehicleId": "emergency1", "startRoad": "north", "endRoad": "south" },
+                    { "type": "addEmergencyVehicle", "vehicleId": "emergency2", "startRoad": "north", "endRoad": "south" },
+                    { "type": "addVehicle", "vehicleId": "regular", "startRoad": "east", "endRoad": "west" },
+                    { "type": "step" },
+                    { "type": "step" }
+                  ]
+                }
+                """;
+
+        JsonNode commands = mapper.readTree(input).get("commands");
+        List<Map<String, List<String>>> result = loop.runSim(commands);
+
+        // first step — one emergency departs, N_S forced
+        assertTrue(result.get(0).get("leftVehicles").stream()
+                .anyMatch(id -> id.equals("emergency1") || id.equals("emergency2")));
+        assertFalse(result.get(0).get("leftVehicles").contains("regular"));
+
+        // second step — remaining emergency still has priority, regular still waits
+        assertTrue(result.get(1).get("leftVehicles").stream()
+                .anyMatch(id -> id.equals("emergency1") || id.equals("emergency2")));
+        assertFalse(result.get(1).get("leftVehicles").contains("regular"));
+    }
 }

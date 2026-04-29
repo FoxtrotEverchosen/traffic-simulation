@@ -1,12 +1,19 @@
 package org.bulanda.trafficsimulation;
 
 import java.util.HashMap;
+import java.util.Set;
 
 public class Controller {
     static final int MIN_PHASE_TIME = 1;
     static final int MAX_PHASE_TIME = 10;
 
-    TrafficDirection setDirection(TrafficDirection current, HashMap<Direction, Integer> trafficLoad, int phaseTime) {
+    TrafficDirection setDirection(TrafficDirection current, HashMap<Direction, Integer> trafficLoad, int phaseTime, Set<Direction> emergencyDirections) {
+        for (TrafficDirection phase : TrafficDirection.values()) {
+            if (phase.directions.stream().anyMatch(emergencyDirections::contains)) {
+                return phase;
+            }
+        }
+
         int currentLoad = loadFor(current, trafficLoad);
         int otherLoad = loadFor(current.other(), trafficLoad);
 

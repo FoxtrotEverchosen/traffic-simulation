@@ -3,8 +3,10 @@ package org.bulanda.trafficsimulation;
 import java.util.*;
 
 public class Intersection {
-    HashMap<Direction, List<Queue<Vehicle>>> lanes;
-    Set<Direction> closedRoads;
+    private final HashMap<Direction, List<Queue<Vehicle>>> lanes;
+    private final Set<Direction> closedDirections;
+    private final Set<String> emergencyVehicleIds;
+    private final Set<Direction> emergencyDirections;
 
     // default to 1 on no lanes count specified
     public Intersection() {
@@ -13,7 +15,10 @@ public class Intersection {
 
     public Intersection(int laneCount) {
         this.lanes = new HashMap<>();
-        this.closedRoads = new HashSet<>();
+        this.emergencyDirections = new HashSet<>();
+        this.emergencyVehicleIds = new HashSet<>();
+        this.closedDirections = new HashSet<>();
+
         for (Direction d : Direction.values()) {
             List<Queue<Vehicle>> roadLanes = new ArrayList<>();
             for (int i = 0; i < laneCount; i++) {
@@ -21,6 +26,10 @@ public class Intersection {
             }
             lanes.put(d, roadLanes);
         }
+    }
+
+    Set<Direction> getEmergencyDirections() {
+        return this.emergencyDirections;
     }
 
     void addVehicle(Vehicle vehicle) {
@@ -31,24 +40,40 @@ public class Intersection {
     }
 
     void failRoad(Direction direction) {
-        closedRoads.add(direction);
+        closedDirections.add(direction);
     }
 
     void fixRoad(Direction direction) {
-        closedRoads.remove(direction);
+        closedDirections.remove(direction);
+    }
+
+    void addEmergencyVehicle(Vehicle vehicle) {
+        // Emergency vehicle will be put at the front of the queue
+        // to simulate it having priority in traffic
+        emergencyVehicleIds.add(vehicle.vehicleId());
+        emergencyDirections.add(vehicle.startRoad());
+        ((ArrayDeque<Vehicle>) lanes.get(vehicle.startRoad()).get(0)).addFirst(vehicle);
     }
 
     List<String> removeVehicles(TrafficDirection trafficDirection) {
         List<String> departed = new ArrayList<>();
         for (Direction d : trafficDirection.directions) {
-            if (closedRoads.contains(d)) {
+            if (closedDirections.contains(d)) {
                 continue;
             }
 
             for (Queue<Vehicle> lane : lanes.get(d)) {
                 Vehicle v = lane.poll();
-                if (v != null) departed.add(v.vehicleId());
+                if (v != null) {
+                    departed.add(v.vehicleId());
+                    emergencyVehicleIds.remove(v.vehicleId());
+                }
             }
+
+            boolean emergencyStillWaiting = lanes.get(d).stream()
+                    .flatMap(Collection::stream)
+                    .anyMatch(vehicle -> emergencyVehicleIds.contains(vehicle.vehicleId()));
+            if (!emergencyStillWaiting) emergencyDirections.remove(d);
         }
         return departed;
     }
@@ -56,7 +81,7 @@ public class Intersection {
     HashMap<Direction, Integer> getLoad() {
         HashMap<Direction, Integer> map = new HashMap<>();
         for (Direction d : Direction.values()) {
-            if (closedRoads.contains(d)) {
+            if (closedDirections.contains(d)) {
                 map.put(d, 0);
             } else {
                 map.put(d, lanes.get(d).stream()

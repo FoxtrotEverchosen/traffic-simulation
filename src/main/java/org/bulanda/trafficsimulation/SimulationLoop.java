@@ -41,14 +41,21 @@ public class SimulationLoop {
                     intersection.fixRoad(direction);
 
                 }
+                case "addEmergencyVehicle" -> {
+                    Vehicle v = new Vehicle(command.get("vehicleId").asText(),
+                            Direction.fromString(command.get("startRoad").asText()),
+                            Direction.fromString(command.get("endRoad").asText())
+                    );
+                    intersection.addEmergencyVehicle(v);
+                }
                 case "step" -> {
-                    TrafficDirection next = controller.setDirection(currentDirection, intersection.getLoad(), phaseTime);
+                    TrafficDirection next = controller.setDirection(currentDirection, intersection.getLoad(),
+                            phaseTime, intersection.getEmergencyDirections());
+
                     phaseTime = next != currentDirection ? 1 : phaseTime + 1;
                     currentDirection = next;
-
                     List<String> departed = intersection.removeVehicles(currentDirection);
                     stepStatuses.add(Map.of("leftVehicles", departed));
-
                 }
                 default -> throw new IllegalArgumentException("Unknown command: " + command.get("type").asText());
             }

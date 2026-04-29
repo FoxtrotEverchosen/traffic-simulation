@@ -10,6 +10,11 @@ import java.util.Map;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+        if (args.length < 2) {
+            System.err.println("Usage: java -jar simulation.jar input.json output.json [laneCount]");
+            System.exit(1);
+        }
+
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(new File(args[0]));
 
