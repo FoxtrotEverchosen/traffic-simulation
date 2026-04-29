@@ -11,7 +11,7 @@ class Controller {
     }
 
     Controller(ControllerStrategy strategy) {
-        this.strategy = strategy;  // only assigned here, chained constructor calls this
+        this.strategy = strategy;
     }
 
     TrafficDirection setDirection(TrafficDirection current,

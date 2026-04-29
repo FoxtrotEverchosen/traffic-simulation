@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class ThresholdStrategy implements ControllerStrategy {
-    static final int MIN_PHASE_TIME = 1;
+    static final int MIN_PHASE_TIME = 2;
     static final int MAX_PHASE_TIME = 10;
 
     public TrafficDirection setDirection(TrafficDirection current, HashMap<Direction, Integer> trafficLoad, int phaseTime, Set<Direction> emergencyDirections) {

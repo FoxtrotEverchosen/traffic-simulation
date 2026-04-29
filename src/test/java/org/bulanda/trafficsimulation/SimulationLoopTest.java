@@ -164,8 +164,7 @@ class SimulationLoopTest {
 
         JsonNode commands = mapper.readTree(input).get("commands");
         List<Map<String, List<String>>> result = loop.runSim(commands);
-
-        // E_W should be forced even though simulation starts with N_S
+        
         assertTrue(result.get(0).get("leftVehicles").contains("emergency"));
         assertFalse(result.get(0).get("leftVehicles").contains("regular"));
     }
@@ -186,7 +185,6 @@ class SimulationLoopTest {
         JsonNode commands = mapper.readTree(input).get("commands");
         List<Map<String, List<String>>> result = loop.runSim(commands);
 
-        // emergency departs first step, regular waits
         assertTrue(result.get(0).get("leftVehicles").contains("emergency"));
         assertFalse(result.get(0).get("leftVehicles").contains("regular"));
     }
@@ -200,6 +198,7 @@ class SimulationLoopTest {
                     { "type": "addEmergencyVehicle", "vehicleId": "emergency", "startRoad": "west", "endRoad": "east" },
                     { "type": "addVehicle", "vehicleId": "regular", "startRoad": "north", "endRoad": "south" },
                     { "type": "step" },
+                    { "type": "step" },
                     { "type": "step" }
                   ]
                 }
@@ -208,10 +207,9 @@ class SimulationLoopTest {
         JsonNode commands = mapper.readTree(input).get("commands");
         List<Map<String, List<String>>> result = loop.runSim(commands);
 
-        // first step emergency goes
         assertTrue(result.get(0).get("leftVehicles").contains("emergency"));
-        // second step normal N_S resumes
-        assertTrue(result.get(1).get("leftVehicles").contains("regular"));
+        assertTrue(result.get(1).get("leftVehicles").isEmpty());
+        assertTrue(result.get(2).get("leftVehicles").contains("regular"));
     }
 
     @Test
@@ -232,12 +230,10 @@ class SimulationLoopTest {
         JsonNode commands = mapper.readTree(input).get("commands");
         List<Map<String, List<String>>> result = loop.runSim(commands);
 
-        // first step — one emergency departs, N_S forced
         assertTrue(result.get(0).get("leftVehicles").stream()
                 .anyMatch(id -> id.equals("emergency1") || id.equals("emergency2")));
         assertFalse(result.get(0).get("leftVehicles").contains("regular"));
 
-        // second step — remaining emergency still has priority, regular still waits
         assertTrue(result.get(1).get("leftVehicles").stream()
                 .anyMatch(id -> id.equals("emergency1") || id.equals("emergency2")));
         assertFalse(result.get(1).get("leftVehicles").contains("regular"));
